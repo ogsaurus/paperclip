@@ -23,6 +23,17 @@ The `gemini_local` adapter runs Google's Gemini CLI locally. It supports session
 | `graceSec` | number | No | Grace period before force-kill |
 | `yolo` | boolean | No | Pass `--approval-mode yolo` for unattended operation |
 
+### Advanced Container / Docker Setup 
+
+If you are running Paperclip inside an isolated container natively (meaning no host utilities like WSL or standard root access), you may need to disable Google's secure unprivileged namespace sandbox to prevent Docker startup crashes.
+
+To do this natively, set `PAPERCLIP_GEMINI_DISABLE_SANDBOX=1` in your container environment variables. Paperclip will safely extract sandbox requirements before orchestrating the daemon.
+
+### Zero-Install Provisioning (JIT)
+If rolling out Gemini agents on the fly, you don't need the CLI pre-installed. In your AI adapter configuration, you can use:
+- **command**: `npx`
+- **extraArgs**: `["-y", "--package=@google/gemini-cli", "gemini"]`
+
 ## Session Persistence
 
 The adapter persists Gemini session IDs between heartbeats. On the next wake, it resumes the existing conversation with `--resume` so the agent retains context.
