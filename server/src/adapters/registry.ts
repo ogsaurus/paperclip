@@ -56,6 +56,7 @@ import {
 } from "@paperclipai/adapter-openclaw-gateway";
 import { listCodexModels } from "./codex-models.js";
 import { listCursorModels } from "./cursor-models.js";
+import { listGeminiModels } from "./gemini-models.js";
 import {
   execute as piExecute,
   listPiSkills,
@@ -134,6 +135,7 @@ const geminiLocalAdapter: ServerAdapterModule = {
   sessionCodec: geminiSessionCodec,
   sessionManagement: getAdapterSessionManagement("gemini_local") ?? undefined,
   models: geminiModels,
+  listModels: listGeminiModels,
   supportsLocalAgentJwt: true,
   agentConfigurationDoc: geminiAgentConfigurationDoc,
 };

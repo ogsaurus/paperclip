@@ -325,7 +325,9 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     if (resumeSessionId) args.push("--resume", resumeSessionId);
     if (model && model !== DEFAULT_GEMINI_LOCAL_MODEL) args.push("--model", model);
     args.push("--approval-mode", "yolo");
-    if (sandbox) {
+    if (effectiveEnv.PAPERCLIP_GEMINI_DISABLE_SANDBOX === "1") {
+      // Sandbox arguments deliberately omitted for Docker/unprivileged environments
+    } else if (sandbox) {
       args.push("--sandbox");
     } else {
       args.push("--sandbox=none");

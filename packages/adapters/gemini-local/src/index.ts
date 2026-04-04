@@ -44,4 +44,5 @@ Notes:
 - Sessions resume with --resume when stored session cwd matches the current cwd.
 - Paperclip auto-injects local skills into \`~/.gemini/skills/\` via symlinks, so the CLI can discover both credentials and skills in their natural location.
 - Authentication can use GEMINI_API_KEY / GOOGLE_API_KEY or local Gemini CLI login.
+- For Docker or JIT (Just-In-Time) provisioning without pre-installing the CLI, configure \`command: "npx"\` and \`extraArgs: ["-y", "--package=@google/gemini-cli", "gemini"]\`.
 `;
