@@ -1,0 +1,6 @@
+# Enforce LF for shell scripts regardless of OS (prevents Docker \r errors on Windows)
+*.sh eol=lf
+
+# Enforce LF for Dockerfiles
+Dockerfile eol=lf
+.dockerignore eol=lf
