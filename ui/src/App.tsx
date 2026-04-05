@@ -62,7 +62,20 @@ function BootstrapPendingPage({ hasActiveInvite = false }: { hasActiveInvite?: b
         <pre className="mt-4 overflow-x-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
 {`pnpm paperclipai auth bootstrap-ceo`}
         </pre>
+        <div className="mt-6 border-t border-border pt-6">
+          <p className="text-sm text-muted-foreground mb-4">
+            Alternatively, sign up with Google to claim instance ownership.
+          </p>
+          <Button 
+            className="w-full" 
+            variant="outline"
+            onClick={() => authApi.signInSocial("google")}
+          >
+            Sign in with Google
+          </Button>
+        </div>
       </div>
+
     </div>
   );
 }

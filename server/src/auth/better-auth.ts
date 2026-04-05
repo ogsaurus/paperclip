@@ -1,9 +1,10 @@
 import type { Request, RequestHandler } from "express";
 import type { IncomingHttpHeaders } from "node:http";
-import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { toNodeHandler } from "better-auth/node";
+import { google } from "better-auth/social-providers";
+
 import type { Db } from "@paperclipai/db";
 import {
   authAccounts,
@@ -12,6 +13,7 @@ import {
   authVerifications,
   instanceUserRoles,
 } from "@paperclipai/db";
+import { eq } from "drizzle-orm";
 import type { Config } from "../config.js";
 
 export type BetterAuthSessionUser = {
@@ -67,13 +69,30 @@ export function deriveAuthTrustedOrigins(config: Config): string[] {
   return Array.from(trustedOrigins);
 }
 
+
 export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins?: string[]): BetterAuthInstance {
-  const baseUrl = config.authBaseUrlMode === "explicit" ? config.authPublicBaseUrl : undefined;
+  const baseUrlRaw = config.authBaseUrlMode === "explicit" ? config.authPublicBaseUrl : undefined;
+  const baseUrl =
+    baseUrlRaw && !baseUrlRaw.endsWith("/api/auth")
+      ? `${baseUrlRaw.replace(/\/$/, "")}/api/auth`
+      : baseUrlRaw;
+
   const secret = process.env.BETTER_AUTH_SECRET ?? process.env.PAPERCLIP_AGENT_JWT_SECRET ?? "paperclip-dev-secret";
   const effectiveTrustedOrigins = trustedOrigins ?? deriveAuthTrustedOrigins(config);
 
   const publicUrl = process.env.PAPERCLIP_PUBLIC_URL ?? baseUrl;
   const isHttpOnly = publicUrl ? publicUrl.startsWith("http://") : false;
+
+  console.log("BetterAuth: Initializing instance", { 
+    baseUrl, 
+    hasGoogleClientId: !!config.authGoogleClientId, 
+    hasGoogleClientSecret: !!config.authGoogleClientSecret,
+    googleClientIdPreview: config.authGoogleClientId?.substring(0, 10) + "..."
+  });
+
+  // Ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are clean
+  const googleClientId = config.authGoogleClientId?.trim().replace(/^"(.*)"$/, "$1");
+  const googleClientSecret = config.authGoogleClientSecret?.trim().replace(/^"(.*)"$/, "$1");
 
   const authConfig = {
     baseURL: baseUrl,
@@ -93,13 +112,23 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins?
       requireEmailVerification: false,
       disableSignUp: config.authDisableSignUp,
     },
-    socialProviders: {
-      google: {
-        clientId: config.authGoogleClientId || "disabled",
-        clientSecret: config.authGoogleClientSecret || "disabled",
-        enabled: Boolean(config.authGoogleClientId && config.authGoogleClientSecret),
-      },
-    },
+    socialProviders: googleClientId && googleClientSecret
+      ? {
+          google: {
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+          },
+        }
+      : undefined,
+    plugins: googleClientId && googleClientSecret
+      ? [
+          google({
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+          }),
+        ]
+      : [],
+
     databaseHooks: {
       user: {
         create: {
@@ -123,19 +152,24 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins?
     ...(isHttpOnly ? { advanced: { useSecureCookies: false } } : {}),
   } as any;
 
-  if (!baseUrl) {
-    delete (authConfig as { baseURL?: string }).baseURL;
-  }
-
   return betterAuth(authConfig);
 }
+
+
 
 export function createBetterAuthHandler(auth: BetterAuthInstance): RequestHandler {
   const handler = toNodeHandler(auth);
   return (req, res, next) => {
+    console.log("BetterAuth: Request received", { 
+      method: req.method,
+      url: req.url, 
+      originalUrl: req.originalUrl,
+      baseUrl: (auth as any).options?.baseURL 
+    });
     void Promise.resolve(handler(req, res)).catch(next);
   };
 }
+
 
 export async function resolveBetterAuthSessionFromHeaders(
   auth: BetterAuthInstance,
