@@ -56,6 +56,8 @@ export const authConfigSchema = z.object({
   baseUrlMode: z.enum(AUTH_BASE_URL_MODES).default("auto"),
   publicBaseUrl: z.string().url().optional(),
   disableSignUp: z.boolean().default(false),
+  googleClientId: z.string().optional(),
+  googleClientSecret: z.string().optional(),
 });
 
 export const storageLocalDiskConfigSchema = z.object({

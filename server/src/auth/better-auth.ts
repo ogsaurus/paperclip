@@ -1,5 +1,6 @@
 import type { Request, RequestHandler } from "express";
 import type { IncomingHttpHeaders } from "node:http";
+import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { toNodeHandler } from "better-auth/node";
@@ -9,6 +10,7 @@ import {
   authSessions,
   authUsers,
   authVerifications,
+  instanceUserRoles,
 } from "@paperclipai/db";
 import type { Config } from "../config.js";
 
@@ -91,8 +93,35 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins?
       requireEmailVerification: false,
       disableSignUp: config.authDisableSignUp,
     },
+    socialProviders: {
+      google: {
+        clientId: config.authGoogleClientId || "disabled",
+        clientSecret: config.authGoogleClientSecret || "disabled",
+        enabled: Boolean(config.authGoogleClientId && config.authGoogleClientSecret),
+      },
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user: any) => {
+            const adminCount = await db
+              .select()
+              .from(instanceUserRoles)
+              .where(eq(instanceUserRoles.role, "instance_admin"))
+              .then((rows) => rows.length);
+
+            if (adminCount === 0) {
+              await db.insert(instanceUserRoles).values({
+                userId: user.id,
+                role: "instance_admin",
+              });
+            }
+          },
+        },
+      },
+    },
     ...(isHttpOnly ? { advanced: { useSecureCookies: false } } : {}),
-  };
+  } as any;
 
   if (!baseUrl) {
     delete (authConfig as { baseURL?: string }).baseURL;

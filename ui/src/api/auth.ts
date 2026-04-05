@@ -71,4 +71,11 @@ export const authApi = {
   signOut: async () => {
     await authPost("/sign-out", {});
   },
+
+  signInSocial: (provider: "google", next?: string) => {
+    const callbackUrl = next ? `${window.location.origin}${next}` : window.location.origin;
+    const url = new URL(`${window.location.origin}/api/auth/social/sign-in/${provider}`);
+    url.searchParams.set("callbackURL", callbackUrl);
+    window.location.href = url.toString();
+  },
 };
