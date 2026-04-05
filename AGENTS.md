@@ -81,7 +81,10 @@ If you change schema/API behavior, update all impacted layers:
 4. Do not replace strategic docs wholesale unless asked.
 Prefer additive updates. Keep `doc/SPEC.md` and `doc/SPEC-implementation.md` aligned.
 
-5. Keep plan docs dated and centralized.
+5. Gemini CLI v0.36.0+ behavior:
+The CLI defaults to interactive mode when using positional arguments. Always use the `--prompt` flag for headless execution, and ensure `GEMINI_CLI_NO_RELAUNCH=true` is set in restricted (Docker) environments.
+
+6. Keep plan docs dated and centralized.
 New plan documents belong in `doc/plans/` and should use `YYYY-MM-DD-slug.md` filenames.
 
 ## 6. Database Change Workflow

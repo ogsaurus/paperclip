@@ -158,7 +158,14 @@ export async function testEnvironment(
         args,
         {
           cwd,
-          env: { ...env, GEMINI_CLI_NO_RELAUNCH: "true" },
+          env: {
+            ...env,
+            GEMINI_SANDBOX: process.env.GEMINI_SANDBOX ?? "false",
+            GEMINI_CLI_NO_RELAUNCH: "true",
+            PATH: process.env.PATH ?? "",
+            HOME: process.env.HOME ?? "",
+            HOSTNAME: process.env.HOSTNAME ?? "",
+          },
           timeoutSec: helloProbeTimeoutSec,
           graceSec: 5,
           onLog: async () => { },

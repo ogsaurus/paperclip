@@ -146,6 +146,24 @@ Notes:
 - Without API keys, the app still runs normally.
 - Adapter environment checks in Paperclip will surface missing auth/CLI prerequisites.
 
+## Gemini Local Adapter in Docker
+
+The image pre-installs the `gemini` CLI (v0.36.0+). For stable execution inside the container:
+
+1. **Disable Sandboxing**: The container does not have the privileges to spawn unprivileged user namespaces. Set `GEMINI_SANDBOX=false` or `PAPERCLIP_GEMINI_DISABLE_SANDBOX=1`.
+2. **Force Non-interactive**: Gemini v0.36.0+ defaults to interactive mode if prompts are passed as positional arguments. Paperclip handles this by using the `--prompt` flag, but you should also set `GEMINI_CLI_NO_RELAUNCH=true` to prevent the CLI from attempting to restart itself for configuration updates.
+
+Pass your API key when starting the container:
+
+```sh
+docker run --name paperclip \
+  -p 3100:3100 \
+  -e GEMINI_API_KEY=... \
+  -e GEMINI_SANDBOX=false \
+  -e GEMINI_CLI_NO_RELAUNCH=true \
+  paperclip-local
+```
+
 ## Podman Quadlet (systemd)
 
 The `docker/quadlet/` directory contains unit files to run Paperclip + PostgreSQL as systemd services via Podman Quadlet.

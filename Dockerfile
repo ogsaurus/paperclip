@@ -44,7 +44,7 @@ FROM base AS build
 WORKDIR /app
 COPY --from=deps /app /app
 COPY . .
-RUN pnpm -r build
+RUN pnpm --filter "@paperclipai/adapter-*" --filter "@paperclipai/db" --filter "@paperclipai/ui" --filter "@paperclipai/plugin-sdk" --filter "@paperclipai/server" --filter "paperclipai" build
 RUN test -f server/dist/index.js || (echo "ERROR: server build output missing" && exit 1)
 RUN test -f cli/dist/index.js || (echo "ERROR: cli build output missing" && exit 1)
 
@@ -72,6 +72,8 @@ ENV NODE_ENV=production \
   PAPERCLIP_CONFIG=/paperclip/instances/default/config.json \
   PAPERCLIP_DEPLOYMENT_MODE=authenticated \
   PAPERCLIP_DEPLOYMENT_EXPOSURE=private \
+  GEMINI_SANDBOX=false \
+  GEMINI_CLI_NO_RELAUNCH=true \
   OPENCODE_ALLOW_ALL_MODELS=true
 
 VOLUME ["/paperclip"]

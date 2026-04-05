@@ -140,7 +140,10 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     config.promptTemplate,
     "You are agent {{agent.id}} ({{agent.name}}). Continue your Paperclip work.",
   );
-  const command = asString(config.command, "gemini");
+  let command = asString(config.command, "gemini").trim();
+  if (command === "@google/gemini-cli") {
+    command = "gemini";
+  }
   const model = asString(config.model, DEFAULT_GEMINI_LOCAL_MODEL).trim();
   const sandbox = asBoolean(config.sandbox, false);
 
@@ -357,7 +360,17 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
 
     const proc = await runChildProcess(runId, command, args, {
       cwd,
-      env,
+      env: {
+        ...env,
+        GEMINI_SANDBOX: process.env.GEMINI_SANDBOX ?? "false",
+        GEMINI_CLI_NO_RELAUNCH: "true",
+        NO_COLOR: "1",
+        TERM: "dumb",
+        CLICOLOR: "0",
+        PATH: process.env.PATH ?? "",
+        HOME: process.env.HOME ?? "",
+        HOSTNAME: process.env.HOSTNAME ?? "",
+      },
       timeoutSec,
       graceSec,
       onSpawn,

@@ -739,11 +739,12 @@ export async function removeMaintainerOnlySkillSymlinks(
 export async function ensureCommandResolvable(command: string, cwd: string, env: NodeJS.ProcessEnv) {
   const resolved = await resolveCommandPath(command, cwd, env);
   if (resolved) return;
+  const pathValue = env.PATH ?? env.Path ?? "";
   if (command.includes("/") || command.includes("\\")) {
     const absolute = path.isAbsolute(command) ? command : path.resolve(cwd, command);
     throw new Error(`Command is not executable: "${command}" (resolved: "${absolute}")`);
   }
-  throw new Error(`Command not found in PATH: "${command}"`);
+  throw new Error(`Command not found in PATH: "${command}" (PATH: ${pathValue})`);
 }
 
 export async function runChildProcess(
