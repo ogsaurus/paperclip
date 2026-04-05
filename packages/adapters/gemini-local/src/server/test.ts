@@ -158,7 +158,7 @@ export async function testEnvironment(
         args,
         {
           cwd,
-          env,
+          env: { ...env, GEMINI_CLI_NO_RELAUNCH: "true" },
           timeoutSec: helloProbeTimeoutSec,
           graceSec: 5,
           onLog: async () => { },
